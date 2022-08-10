@@ -25,11 +25,12 @@ def send():
 
 
 if __name__ == "__main__":
-    HOST = str(input("Enter host: "))
-    PORT = int(input("Enter port: "))
+    #HOST = str(input("Enter host: "))
+    #PORT = int(input("Enter port: "))
     nick = str(input("Enter your nickname: "))
 
-    client.connect((HOST, PORT))    
+    #client.connect((HOST, PORT))    
+    client.connect(("localhost", 55555))
 
     rcv = threading.Thread(target=receive)
     rcv.start()
