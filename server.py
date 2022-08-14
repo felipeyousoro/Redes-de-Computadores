@@ -3,41 +3,37 @@ import threading
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-clients = []
+clients = []    # lista de clientes conectados
 
 def broadcastMessage(message):
-    for client in clients:
-        client.send(message.encode("utf-8"))
+    for client in clients:  # envia mensagem para todos os clientes conectados
+        client.send(message.encode("utf-8")) 
 
 def receive(client):
     while True:
-        message = client.recv(1024).decode("utf-8")
+        message = client.recv(1024).decode("utf-8") # recebe mensagem do cliente
 
         if not message: break
 
-        broadcastMessage(message)
+        broadcastMessage(message) # chamada de função para envia mensagem para todos os clientes conectados
 
 def manager():
     while(True):
-        client, address = server.accept()
-        clients.append(client)
+        client, address = server.accept() # aceita conexão do cliente
+        clients.append(client) # adiciona cliente a lista de clientes conectados
 
-        print("Connected with {}".format(str(address)))
-        print("Greta Thunberg impregnator has joined the chat")
-        rcv = threading.Thread(target=receive, args=(client,))
-        rcv.start()
+        rcv = threading.Thread(target=receive, args=(client,)) # cria thread para receber mensagens do cliente
+        rcv.start() # inicia thread
 
          
 
 
 
 if __name__ == "__main__":
-    #HOST = str(input("Enter host: "))
-    #PORT = int(input("Enter port: "))
+    HOST = str(input("Enter host: ")) # host do servidor
+    PORT = int(input("Enter port: ")) # porta do servidor
 
-    #server.bind((HOST, PORT))
-    server.bind(("localhost", 55555))
-    server.listen(1)
+    server.bind((HOST, PORT)) # bind do servidor
+    server.listen(1) # escuta conexões do servidor
 
-    manager()
-    
+    manager() # chamada de função para gerenciar conexões do servidor
