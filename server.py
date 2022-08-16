@@ -5,6 +5,7 @@ server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 clients = []    # lista de clientes conectados
 
+
 def broadcastMessage(message):
     for client in clients:  # envia mensagem para todos os clientes conectados
         client.send(message.encode("utf-8")) 
@@ -26,11 +27,22 @@ def manager():
         rcv.start() # inicia thread
 
          
-
+def extract_ip():
+    st = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        st.connect(('10.255.255.255', 1))
+        IP = st.getsockname()[0]
+    except Exception:
+        IP = '127.0.0.1'
+    finally:
+        st.close()
+    return IP
 
 
 if __name__ == "__main__":
-    HOST = str(input("Enter host: ")) # host do servidor
+    #HOST = socket.gethostbyname(socket.gethostname()) # host do servidor
+    HOST = extract_ip()
+    print(HOST)
     PORT = int(input("Enter port: ")) # porta do servidor
 
     server.bind((HOST, PORT)) # bind do servidor

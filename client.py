@@ -5,6 +5,9 @@ import time
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 nick = "" # nick do cliente
 
+def asciiCode(char):
+    return ord(char)
+    
 def receive():
     global client 
     
