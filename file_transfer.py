@@ -25,7 +25,7 @@ def interface_type():
 
 def interface_size():
     select = 0
-    print("   Qual o tamanho máximo de paco que você deseja receber?")
+    print("   Qual o tamanho máximo de pacote que você deseja receber?")
     while (True):
         if select == 0:
             sys.stdout.write("\r=> 500\t   1000\t   1500")
@@ -73,11 +73,10 @@ class Server:
 
     def receive_file(self):
         file_name = self.client.recv(1024).decode("utf-8")
-        print("   File name: " + file_name)
+        print("   Nome do arquiv: " + file_name)
         self.client.send(("File name received").encode("utf-8"))
         pckg_bytes = int(self.client.recv(1024).decode("utf-8"))
         pckg_size = int(self.client.recv(1024).decode("utf-8"))
-        time.sleep(2)
         file = open(file_name, "wb")
         start = time.time()
         size = 0
@@ -90,12 +89,12 @@ class Server:
         size = size * 8
         file.close()
         self.client.send(("File received").encode("utf-8"))
-        print("File received")
+        print("   Arquivo recebido")
         report_1 = self.client.recv(1024).decode('utf-8')
-        report_2 = "   Download speed:\t" + str(size / Time) + " bit/s"
-        report_2 += "\n   Download time:\t" + str(Time)
-        report_2 += "\n   Received packages:\t" + str(pckg_size)
-        report_2 += "\n   Packages lost:\t" + str(0)
+        report_2 = "   Velocidade de download:\t" + str(size / Time) + " bit/s"
+        report_2 += "\n   Tempo para download:\t\t" + str(Time)
+        report_2 += "\n   Pacotes recebidos:\t\t" + str(pckg_size)
+        report_2 += "\n   Pacotes perdidos:\t\t" + str(0)
         self.client.send((report_2).encode("utf-8"))
         print(report_1)
         print(report_2)
@@ -109,7 +108,7 @@ class Client:
         self.pckg_size = SIZE
 
     def select_file(self):
-        self.file_path = input("Insert file directory")
+        self.file_path = input("   Insira o caminho do arquivo: ")
         self.file_name = os.path.basename(self.file_path)
 
     def send_file(self):
@@ -128,7 +127,6 @@ class Client:
 
         self.client.send(
             str(1 + int((len(file_content) / self.pckg_size))).encode('utf-8'))
-        time.sleep(1)
 
         pkg = b''
         idx = 0
@@ -144,13 +142,13 @@ class Client:
         feedback = self.client.recv(1024).decode("utf-8")
 
         if feedback == 'File received':
-            print("File uploaded successfully")
+            print("   Arquivo enviado com sucesso")
         
         # REPORT
-        report_1 = "\n   File Size:\t\t" + str(len(file_content)) + " bytes" + "\n   Packages sent:\t" + str(
+        report_1 = "\n   Tamanho do arquivo:\t\t" + str(len(file_content)) + " bytes" + "\n   Pacotes enviados:\t\t" + str(
             1 + int((len(file_content) / self.pckg_size)))
-        report_1 += "\n   Upload speed:\t" +  str((len(file_content) * 8) / Time) + " bit/s"
-        report_1 += "\n   Upload time:\t\t" + str(Time)
+        report_1 += "\n   Velocidade de upload:\t" +  str((len(file_content) * 8) / Time) + " bit/s"
+        report_1 += "\n   Tempo para upload:\t\t" + str(Time)
         self.client.send(report_1.encode('utf-8'))
         report_2 = self.client.recv(1024).decode("utf-8")
         print(report_1)        
@@ -161,16 +159,16 @@ if __name__ == "__main__":
     __select__ = interface_type()
 
     if __select__:
-        PORT = int(input("   Enter port: "))
+        PORT = int(input("   Insira a porta: "))
         __server = Server(PORT)
         __server.receive_file()
 
     if not __select__:
-        PORT = int(input("   Enter port: "))
-        HOST = str(input("   Enter host: "))
+        PORT = int(input("   Insira a porta: "))
+        HOST = str(input("   Insira o ip:"))
         SIZE = interface_size()
         __client = Client(HOST, PORT, SIZE)
         __client.select_file()
         __client.send_file()
 
-    out = input("\n\n   Press ENTER to exit")
+    out = input("\n\n   Pressione ENTER para sair")
