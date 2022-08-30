@@ -76,6 +76,7 @@ class Server:
         print("   Nome do arquiv: " + file_name)
         self.client.send(("File name received").encode("utf-8"))
         pckg_bytes = int(self.client.recv(1024).decode("utf-8"))
+        self.client.send(("Bytes received").encode("utf-8"))
         pckg_size = int(self.client.recv(1024).decode("utf-8"))
         file = open(file_name, "wb")
         start = time.time()
@@ -115,6 +116,7 @@ class Client:
         self.client.send(self.file_name.encode('utf-8'))
         feedback = self.client.recv(1024).decode("utf-8")
         self.client.send(str(self.pckg_size).encode('utf-8'))
+        feedback2 = self.client.recv(1024).decode("utf-8")
         file_content = []
         if feedback == 'File name received':
             file = open(self.file_path, "rb")
@@ -153,7 +155,6 @@ class Client:
         report_2 = self.client.recv(1024).decode("utf-8")
         print(report_1)        
         print(report_2)        
-
 
 if __name__ == "__main__":
     __select__ = interface_type()
