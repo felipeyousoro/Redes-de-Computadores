@@ -72,12 +72,14 @@ class Server:
         self.client, address = self.server.accept()
 
     def receive_file(self):
-        file_name = self.client.recv(1024).decode("utf-8")
+        file_name = self.client.recv(2048).decode("utf-8")
         print("   Nome do arquiv: " + file_name)
         self.client.send(("File name received").encode("utf-8"))
-        pckg_bytes = int(self.client.recv(1024).decode("utf-8"))
+        pckg_bytes = int(self.client.recv(2048).decode("utf-8"))
+        print(pckg_bytes)
         self.client.send(("Bytes received").encode("utf-8"))
-        pckg_size = int(self.client.recv(1024).decode("utf-8"))
+        pckg_size = int(self.client.recv(2048).decode("utf-8"))
+        print(pckg_size)
         file = open(file_name, "wb")
         start = time.time()
         size = 0
@@ -91,7 +93,7 @@ class Server:
         file.close()
         self.client.send(("File received").encode("utf-8"))
         print("   Arquivo recebido")
-        report_1 = self.client.recv(1024).decode('utf-8')
+        report_1 = self.client.recv(2048).decode('utf-8')
         report_2 = "   Velocidade de download:\t" + str(size / Time) + " bit/s"
         report_2 += "\n   Tempo para download:\t\t" + str(Time)
         report_2 += "\n   Pacotes recebidos:\t\t" + str(pckg_size)
@@ -114,14 +116,14 @@ class Client:
 
     def send_file(self):
         self.client.send(self.file_name.encode('utf-8'))
-        feedback = self.client.recv(1024).decode("utf-8")
+        feedback = self.client.recv(2048).decode("utf-8")
         self.client.send(str(self.pckg_size).encode('utf-8'))
-        feedback2 = self.client.recv(1024).decode("utf-8")
+        feedback2 = self.client.recv(2048).decode("utf-8")
         file_content = []
         if feedback == 'File name received':
             file = open(self.file_path, "rb")
             while True:
-                byte = file.read(1)
+                byte = file.read(self.pckg_size)
                 if not byte:
                     break
                 file_content.append(byte)
@@ -133,18 +135,21 @@ class Client:
         pkg = b''
         idx = 0
         start = time.time()
+
+        print(len(file_content))
+
         for idx in range(len(file_content)):
-            pkg += file_content[idx]
-            if (len(pkg) == self.pckg_size or idx == len(file_content) - 1):
-                self.client.send(pkg)
-                pkg = b''
-                feedback = self.client.recv(1024).decode("utf-8")
+            self.client.send(file_content[idx])
+            feedback = self.client.recv(2048).decode("utf-8")
         Time = time.time() - start + 1e-10
 
-        feedback = self.client.recv(1024).decode("utf-8")
+        feedback = self.client.recv(2048).decode("utf-8")
 
         if feedback == 'File received':
             print("   Arquivo enviado com sucesso")
+        else:
+            print("   Erro no recebimento do arquivo")
+
         
         # REPORT
         report_1 = "\n   Tamanho do arquivo:\t\t" + str(len(file_content)) + " bytes" + "\n   Pacotes enviados:\t\t" + str(
@@ -152,7 +157,7 @@ class Client:
         report_1 += "\n   Velocidade de upload:\t" +  str((len(file_content) * 8) / Time) + " bit/s"
         report_1 += "\n   Tempo para upload:\t\t" + str(Time)
         self.client.send(report_1.encode('utf-8'))
-        report_2 = self.client.recv(1024).decode("utf-8")
+        report_2 = self.client.recv(2048).decode("utf-8")
         print(report_1)        
         print(report_2)        
 
