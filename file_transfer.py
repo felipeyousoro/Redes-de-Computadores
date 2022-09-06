@@ -1,9 +1,11 @@
 from select import select
 import readchar
+import struct
 import sys
 import time
 import socket
 import os
+import numpy as np
 
 def interface_type():
     select = 0
@@ -72,35 +74,44 @@ class Server:
         self.client, address = self.server.accept()
 
     def receive_file(self):
-        file_name = self.client.recv(2048).decode("utf-8")
+        file_name = self.client.recv(1024).decode("utf-8")
+        
         print("   Nome do arquiv: " + file_name)
+        
         self.client.send(("File name received").encode("utf-8"))
-        pckg_bytes = int(self.client.recv(2048).decode("utf-8"))
+        
+        pckg_bytes = struct.unpack('i', self.client.recv(1024))
+        
         print(pckg_bytes)
-        self.client.send(("Bytes received").encode("utf-8"))
-        pckg_size = int(self.client.recv(2048).decode("utf-8"))
-        print(pckg_size)
+        
         file = open(file_name, "wb")
-        start = time.time()
+        
+        
         size = 0
-        for i in range(pckg_size):
-            pck = self.client.recv(pckg_bytes)
-            size += len(pck)
-            self.client.send(("Package received").encode("utf-8"))
-            file.write(pck)
-        Time = time.time() - start + 1e-10
-        size = size * 8
+
+    
+        start_t = time.time()
+
+        while True:
+
+            start = time.time()
+
+            pck = self.client.recv(pckg_bytes[0])
+
+            if len(pck) == 0:
+                break
+
+            cont = (struct.unpack('i', pck[:4]))[0]
+
+            file.write(pck[4:])
+
+            Time = time.time() - start + 1e-10
+
+            print('Package ' + str(cont) + ' received. ' + str((pckg_bytes[0] * 8) / Time) + 'bits/s')
+
+        print('Tempo total gasto: ' + str(time.time() - start_t))
+
         file.close()
-        self.client.send(("File received").encode("utf-8"))
-        print("   Arquivo recebido")
-        report_1 = self.client.recv(2048).decode('utf-8')
-        report_2 = "   Velocidade de download:\t" + str(size / Time) + " bit/s"
-        report_2 += "\n   Tempo para download:\t\t" + str(Time)
-        report_2 += "\n   Pacotes recebidos:\t\t" + str(pckg_size)
-        report_2 += "\n   Pacotes perdidos:\t\t" + str(0)
-        self.client.send((report_2).encode("utf-8"))
-        print(report_1)
-        print(report_2)
 
 class Client:
     def __init__(self, HOST, PORT, SIZE):
@@ -116,52 +127,32 @@ class Client:
 
     def send_file(self):
         self.client.send(self.file_name.encode('utf-8'))
-        feedback = self.client.recv(2048).decode("utf-8")
-        self.client.send(str(self.pckg_size).encode('utf-8'))
-        feedback2 = self.client.recv(2048).decode("utf-8")
-        file_content = []
+        feedback = self.client.recv(1024).decode("utf-8")
+        self.client.send(struct.pack('i',self.pckg_size))
+    
+        start = time.time()
         if feedback == 'File name received':
             file = open(self.file_path, "rb")
+            cont = 0
             while True:
-                byte = file.read(self.pckg_size)
-                if not byte:
+                byte_1 = struct.pack('i', cont)
+                cont += 1
+                byte_2 = file.read(self.pckg_size - len(byte_1))
+                if not byte_2:
+                    self.client.send(struct.pack('i', -1))
                     break
-                file_content.append(byte)
+                self.client.send(byte_1 + byte_2)
             file.close()
-
-        self.client.send(
-            str(1 + int((len(file_content) / self.pckg_size))).encode('utf-8'))
-
-        pkg = b''
-        idx = 0
-        start = time.time()
-
-        print(len(file_content))
-
-        for idx in range(len(file_content)):
-            self.client.send(file_content[idx])
-            feedback = self.client.recv(2048).decode("utf-8")
         Time = time.time() - start + 1e-10
 
-        feedback = self.client.recv(2048).decode("utf-8")
-
-        if feedback == 'File received':
-            print("   Arquivo enviado com sucesso")
-        else:
-            print("   Erro no recebimento do arquivo")
-
-        
-        # REPORT
-        report_1 = "\n   Tamanho do arquivo:\t\t" + str(len(file_content)) + " bytes" + "\n   Pacotes enviados:\t\t" + str(
-            1 + int((len(file_content) / self.pckg_size)))
-        report_1 += "\n   Velocidade de upload:\t" +  str((len(file_content) * 8) / Time) + " bit/s"
-        report_1 += "\n   Tempo para upload:\t\t" + str(Time)
-        self.client.send(report_1.encode('utf-8'))
-        report_2 = self.client.recv(2048).decode("utf-8")
-        print(report_1)        
-        print(report_2)        
+        self.client.send("Finish".encode('utf-8'))
 
 if __name__ == "__main__":
+
+    file = open('test','wb')
+
+    file.close()
+
     __select__ = interface_type()
 
     if __select__:
@@ -177,4 +168,4 @@ if __name__ == "__main__":
         __client.select_file()
         __client.send_file()
 
-    out = input("\n\n   Pressione ENTER para sair")
+    print("\n\n   Tranferencia concluida")
