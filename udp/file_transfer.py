@@ -68,40 +68,47 @@ class Server:
         print("   IP: " + HOST)
         self.server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.server.bind((HOST, port))
-        self.server.listen(1)
         self.server.setblocking(1)
-        self.client, address = self.server.accept()
 
     def receive_file(self):
-        file_name = self.client.recv(1024).decode("utf-8")
-        print("   Nome do arquivo: " + file_name)
-        self.client.send(("File name received").encode("utf-8"))
-        pckg_bytes = struct.unpack('i', self.client.recv(1024))[0]
-        file = open(file_name, "wb")
-        start_t = time.time()
-        size = 0
-        while True:
-            pck = self.client.recv(pckg_bytes)
-            if len(pck) == 0:
-                break
-            while len(pck) < pckg_bytes:
-                pck_2 = self.client.recv(pckg_bytes - len(pck))
-                if len(pck_2) == 0:
-                    break
-                pck += pck_2
-            size += len(pck) - 4
-            file.write(pck[4:])
-        fim_t = time.time() - start_t
-        print('   Tempo total gasto: ' + str(fim_t) + ' segundos')
-        print('   Tamanho do arquivo: ' + str("{:,}".format(size)).replace(',','.') + ' bytes' )
-        print('   Velocidade de download: ' +  "{:,}".format(((size * 8) / fim_t)).replace('.','#').replace(',','.').replace('#',",") + ' bits/s')
-        file.close()
+        bytesAddressPair = self.server.recvfrom(1024)
+
+        message = bytesAddressPair[0]
+
+        address = bytesAddressPair[1]
+
+        clientMsg = "Message from Client:{}".format(message)
+        clientIP  = "Client IP Address:{}".format(address)
+        
+        print(clientMsg)
+        print(clientIP)
+
+        # print("   Nome do arquivo: " + file_name)
+        # self.client.send(("File name received").encode("utf-8"))
+        # pckg_bytes = struct.unpack('i', self.client.recv(1024))[0]
+        # file = open(file_name, "wb")
+        # start_t = time.time()
+        # size = 0
+        # while True:
+        #     pck = self.client.recv(pckg_bytes)
+        #     if len(pck) == 0:
+        #         break
+        #     while len(pck) < pckg_bytes:
+        #         pck_2 = self.client.recv(pckg_bytes - len(pck))
+        #         if len(pck_2) == 0:
+        #             break
+        #         pck += pck_2
+        #     size += len(pck) - 4
+        #     file.write(pck[4:])
+        # fim_t = time.time() - start_t
+        # print('   Tempo total gasto: ' + str(fim_t) + ' segundos')
+        # print('   Tamanho do arquivo: ' + str("{:,}".format(size)).replace(',','.') + ' bytes' )
+        # print('   Velocidade de download: ' +  "{:,}".format(((size * 8) / fim_t)).replace('.','#').replace(',','.').replace('#',",") + ' bits/s')
+        # file.close()
 
 class Client:
     def __init__(self, HOST, PORT, SIZE):
         self.client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.client.connect((HOST, PORT))
-        self.client.setblocking(1)
         self.file_name = None
         self.file_path = None
         self.pckg_size = SIZE
@@ -111,30 +118,30 @@ class Client:
         self.file_name = os.path.basename(self.file_path)
 
     def send_file(self):
-        self.client.send(self.file_name.encode('utf-8'))
-        feedback = self.client.recv(1024).decode("utf-8")
-        self.client.send(struct.pack('i',self.pckg_size))
+        self.client.sendto(self.file_name.encode('utf-8'), ("191.52.64.116", 2000))
+        # feedback = self.client.recv(1024).decode("utf-8")
+        # self.client.send(struct.pack('i',self.pckg_size))
     
-        start = time.time()
-        if feedback == 'File name received':
-            file = open(self.file_path, "rb")
-            cont = 0
-            while True:
-                byte_1 = struct.pack('i', cont)
+        # start = time.time()
+        # if feedback == 'File name received':
+        #     file = open(self.file_path, "rb")
+        #     cont = 0
+        #     while True:
+        #         byte_1 = struct.pack('i', cont)
                 
-                cont += 1
+        #         cont += 1
 
-                byte_2 = file.read(self.pckg_size - len(byte_1))
+        #         byte_2 = file.read(self.pckg_size - len(byte_1))
 
-                if not byte_2:
-                    break
+        #         if not byte_2:
+        #             break
 
-                self.client.send(byte_1 + byte_2)
+        #         self.client.send(byte_1 + byte_2)
 
-            file.close()
-        Time = time.time() - start + 1e-10
+        #     file.close()
+        # Time = time.time() - start + 1e-10
 
-        self.client.send("".encode('utf-8'))
+        # self.client.send("".encode('utf-8'))
 
 if __name__ == "__main__":
 

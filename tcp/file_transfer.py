@@ -66,7 +66,7 @@ class Server:
     def __init__(self, port):
         HOST = extract_ip()
         print("   IP: " + HOST)
-        self.server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.bind((HOST, port))
         self.server.listen(1)
         self.server.setblocking(1)
@@ -99,7 +99,7 @@ class Server:
 
 class Client:
     def __init__(self, HOST, PORT, SIZE):
-        self.client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.client.connect((HOST, PORT))
         self.client.setblocking(1)
         self.file_name = None
