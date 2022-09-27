@@ -151,7 +151,7 @@ if __name__ == "__main__":
 
     if not __select__:
         PORT = int(input("   Insira a porta: "))
-        HOST = str(input("   Insira o IP :"))
+        HOST = str(input("   Insira o IP: "))
         SIZE = interface_size()
         __client = Client(HOST, PORT, SIZE)
         __client.select_file()
