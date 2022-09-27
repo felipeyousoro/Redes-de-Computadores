@@ -51,7 +51,6 @@ def interface_size():
                 select = 1
         sys.stdout.flush()
 
-
 def extract_ip():
     st = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
@@ -63,7 +62,6 @@ def extract_ip():
         st.close()
     return IP
 
-
 class Server:
     def __init__(self, port):
         HOST = extract_ip()
@@ -71,52 +69,39 @@ class Server:
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.bind((HOST, port))
         self.server.listen(1)
+        self.server.setblocking(1)
         self.client, address = self.server.accept()
 
     def receive_file(self):
         file_name = self.client.recv(1024).decode("utf-8")
-        
-        print("   Nome do arquiv: " + file_name)
-        
+        print("   Nome do arquivo: " + file_name)
         self.client.send(("File name received").encode("utf-8"))
-        
-        pckg_bytes = struct.unpack('i', self.client.recv(1024))
-        
-        print(pckg_bytes)
-        
+        pckg_bytes = struct.unpack('i', self.client.recv(1024))[0]
         file = open(file_name, "wb")
-        
-        
-        size = 0
-
-    
         start_t = time.time()
-
+        size = 0
         while True:
-
-            start = time.time()
-
-            pck = self.client.recv(pckg_bytes[0])
-
+            pck = self.client.recv(pckg_bytes)
             if len(pck) == 0:
                 break
-
-            cont = (struct.unpack('i', pck[:4]))[0]
-
+            while len(pck) < pckg_bytes:
+                pck_2 = self.client.recv(pckg_bytes - len(pck))
+                if len(pck_2) == 0:
+                    break
+                pck += pck_2
+            size += len(pck) - 4
             file.write(pck[4:])
-
-            Time = time.time() - start + 1e-10
-
-            print('Package ' + str(cont) + ' received. ' + str((pckg_bytes[0] * 8) / Time) + 'bits/s')
-
-        print('Tempo total gasto: ' + str(time.time() - start_t))
-
+        fim_t = time.time() - start_t
+        print('   Tempo total gasto: ' + str(fim_t) + ' segundos')
+        print('   Tamanho do arquivo: ' + str("{:,}".format(size)).replace(',','.') + ' bytes' )
+        print('   Velocidade de download: ' +  "{:,}".format(((size * 8) / fim_t)).replace('.','#').replace(',','.').replace('#',",") + ' bits/s')
         file.close()
 
 class Client:
     def __init__(self, HOST, PORT, SIZE):
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.client.connect((HOST, PORT))
+        self.client.setblocking(1)
         self.file_name = None
         self.file_path = None
         self.pckg_size = SIZE
@@ -136,16 +121,20 @@ class Client:
             cont = 0
             while True:
                 byte_1 = struct.pack('i', cont)
+                
                 cont += 1
+
                 byte_2 = file.read(self.pckg_size - len(byte_1))
+
                 if not byte_2:
-                    self.client.send(struct.pack('i', -1))
                     break
+
                 self.client.send(byte_1 + byte_2)
+
             file.close()
         Time = time.time() - start + 1e-10
 
-        self.client.send("Finish".encode('utf-8'))
+        self.client.send("Finish000".encode('utf-8'))
 
 if __name__ == "__main__":
 
@@ -162,7 +151,7 @@ if __name__ == "__main__":
 
     if not __select__:
         PORT = int(input("   Insira a porta: "))
-        HOST = str(input("   Insira o ip:"))
+        HOST = str(input("   Insira o IP :"))
         SIZE = interface_size()
         __client = Client(HOST, PORT, SIZE)
         __client.select_file()
