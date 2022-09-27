@@ -65,7 +65,7 @@ def extract_ip():
 class Server:
     def __init__(self, port):
         HOST = extract_ip()
-        print("   IP:" + HOST)
+        print("   IP: " + HOST)
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.bind((HOST, port))
         self.server.listen(1)
