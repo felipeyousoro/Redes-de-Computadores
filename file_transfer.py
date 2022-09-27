@@ -134,7 +134,7 @@ class Client:
             file.close()
         Time = time.time() - start + 1e-10
 
-        self.client.send("Finish000".encode('utf-8'))
+        self.client.send("".encode('utf-8'))
 
 if __name__ == "__main__":
 
