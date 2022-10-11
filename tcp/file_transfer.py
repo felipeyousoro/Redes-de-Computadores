@@ -27,7 +27,7 @@ def interface_type():
 
 def interface_size():
     select = 0
-    print("   Qual o tamanho máximo de pacote que você deseja receber?")
+    print("   Qual o tamanho máximo de pacote que você deseja enviar?")
     while (True):
         if select == 0:
             sys.stdout.write("\r=> 500\t   1000\t   1500")
