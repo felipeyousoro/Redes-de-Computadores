@@ -121,7 +121,7 @@ class Peer:
     def send_file_content(self, file, pckg_num, ip, port):
         global buffer_size
 
-        for i in range(1, pckg_num + 1 / window_size):
+        for i in range(1, int((pckg_num + 1)/window_size)):
             if i % 5000 == 0:
                 print("Sending package %d of %d" % (i, pckg_num))
             while True:
@@ -187,10 +187,11 @@ class Peer:
         file = open("chegou-" + file_name, "wb")
 
         lost_packages = 0
-        for i in range(1, (pckg_num + 1)/window_size):
+        for i in range(1, int((pckg_num + 1)/window_size)):
             if i % 5000 == 0:
                 print("Receiving package %d of %d" % (i, pckg_num))
             while True:
+                data_list = []
                 try:
                     for i in range(window_size):
                         data, addr = self.socket.recvfrom(buffer_size)
@@ -198,17 +199,20 @@ class Peer:
                             lost_packages += 1
                             continue
 
+                        header = data[:data.find(b';')]
+                        header = header.decode('utf-8').lstrip('0')
+                        data = data[data.find(b';') + 1:]
+
+                        data_list.append(data)
+                    
                     self.socket.sendto("ACK".encode('utf-8'), addr)
                     
-                    header = data[:data.find(b';')]
-                    header = header.decode('utf-8').lstrip('0')
-                    data = data[data.find(b';') + 1:]
-                    file.write(data)
-
-                    break
                 except socket.timeout:
                     lost_packages += 1
                     continue
+
+                for i in range(window_size):
+                        file.write(data_list[i])
 
         file.close()
         return lost_packages
@@ -225,4 +229,4 @@ if __name__ == "__main__":
         peer.receive_file()
     else:
         peer = Peer("191.52.64.63", 3000)
-        peer.send_file("musica.flac", "191.52.64.63", 3000)
+        peer.send_file("musica.flac", "191.52.64.209", 3000)
