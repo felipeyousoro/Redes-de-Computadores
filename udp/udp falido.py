@@ -187,14 +187,15 @@ class Peer:
         file = open("chegou-" + file_name, "wb")
 
         lost_packages = 0
-        for i in range(1, int((pckg_num + 1)/window_size)):
-            if i % 5000 == 0:
-                print("Receiving package %d of %d" % (i, pckg_num))
+        for i in range(1, int(np.ceil((pckg_num + 1)/window_size)) + 1):
+            
+            cont = 1
             while True:
                 data_list = []
                 try:
-                    for i in range(window_size):
+                    for n in range(window_size):
                         data, addr = self.socket.recvfrom(buffer_size)
+
                         if len(data) != buffer_size:
                             lost_packages += 1
                             continue
@@ -204,15 +205,16 @@ class Peer:
                         data = data[data.find(b';') + 1:]
 
                         data_list.append(data)
-                    
+                  
                     self.socket.sendto("ACK".encode('utf-8'), addr)
                     
                 except socket.timeout:
                     lost_packages += 1
                     continue
 
-                for i in range(window_size):
-                        file.write(data_list[i])
+                for n in range(len(data_list)):
+                        file.write(data_list[n])
+                break
 
         file.close()
         return lost_packages
