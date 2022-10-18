@@ -121,16 +121,17 @@ class Peer:
     def send_file_content(self, file, pckg_num, ip, port):
         global buffer_size
 
-        for i in range(1, pckg_num + 1):
+        for i in range(1, pckg_num + 1 / window_size):
             if i % 5000 == 0:
                 print("Sending package %d of %d" % (i, pckg_num))
             while True:
                 try:
-                    data = file.read(buffer_size - 10)
-                    data = (str(i) + ";").encode('utf-8') + data
-                    data = data.zfill(buffer_size)
+                    for i in range(window_size):
+                        data = file.read(buffer_size - 10)
+                        data = (str(i) + ";").encode('utf-8') + data
+                        data = data.zfill(buffer_size)
 
-                    self.socket.sendto(data, (ip, port))
+                        self.socket.sendto(data, (ip, port))
 
                     ack_msg = self.socket.recv(buffer_size)
                     ack_msg = ack_msg.decode('utf-8').lstrip('0')
@@ -186,15 +187,16 @@ class Peer:
         file = open("chegou-" + file_name, "wb")
 
         lost_packages = 0
-        for i in range(1, pckg_num + 1):
+        for i in range(1, (pckg_num + 1)/window_size):
             if i % 5000 == 0:
                 print("Receiving package %d of %d" % (i, pckg_num))
             while True:
                 try:
-                    data, addr = self.socket.recvfrom(buffer_size)
-                    if len(data) != buffer_size:
-                        lost_packages += 1
-                        continue
+                    for i in range(window_size):
+                        data, addr = self.socket.recvfrom(buffer_size)
+                        if len(data) != buffer_size:
+                            lost_packages += 1
+                            continue
 
                     self.socket.sendto("ACK".encode('utf-8'), addr)
                     
@@ -212,18 +214,15 @@ class Peer:
         return lost_packages
 
 if __name__ == "__main__":
-    rcv_snd = int(input("Send or receive file? (0/1): "))
-
     __select__ = choose_peer_type()
 
     choose_package_size()
     choose_window_size()
 
     if(__select__ == 1):
-        peer = Peer("191.52.64.63", 3000)
+        peer = Peer("191.52.64.209", 3000)
         peer.socket.bind((peer.ip, peer.port))
         peer.receive_file()
     else:
         peer = Peer("191.52.64.63", 3000)
         peer.send_file("musica.flac", "191.52.64.63", 3000)
-    
