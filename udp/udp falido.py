@@ -79,7 +79,7 @@ class Peer:
         self.send_file_header(file_name, ip, port)
         print("Header sent")    
     
-        self.socket.settimeout(0.1)
+        self.socket.settimeout(0.02)
 
         global buffer_size
         pckg_num = int(np.ceil(os.path.getsize(file_name) / (buffer_size - 10)))
@@ -97,7 +97,7 @@ class Peer:
         print("Time spent: %.6f seconds" % (float(end_time) - start_time))
 
         total_per_s = float(int(os.path.getsize(file_name)) / (end_time - start_time))
-        print("Total %s bits/s" % (str("{:,}".format(total_per_s).replace('.','#').replace(',','.').replace('#',","))))
+        print("Total %s bits/s" % (str("{:,}".format(8 * total_per_s).replace('.','#').replace(',','.').replace('#',","))))
 
 
     def send_file_header(self, file_name, ip, port):
@@ -115,15 +115,19 @@ class Peer:
                 ack_msg = ack_msg.decode('utf-8').lstrip('0')
                 if ack_msg == "ACK":
                     break
-            except socket.timeout:
+            except:
                 continue
+        
 
     def send_file_content(self, file, pckg_num, ip, port):
         global buffer_size
-
+        
         for i in range(1, int(np.ceil((pckg_num + 1)/window_size)) + 1):
+            print("Sending window %d/%d" % (i, int(np.ceil((pckg_num + 1)/window_size))))
             while True:
                 try:
+                    file.seek((i-1)*window_size*(buffer_size - 10))
+                
                     for n in range(window_size):
                         data = file.read(buffer_size - 10)
                         data = (str(n) + ";").encode('utf-8') + data
@@ -136,7 +140,8 @@ class Peer:
                     if ack_msg == "ACK":
                         break
                     
-                except socket.timeout:
+                except:
+                    print("Erro no envio da janela %d" % (i))
                     continue
 
 
@@ -144,8 +149,6 @@ class Peer:
     def receive_file(self):
         header, addr = self.receive_header()
         file_name, file_size = header.split(";")
-
-        self.socket.settimeout(0.1)
 
         global buffer_size
         pckg_num = int(np.ceil(int(file_size) / (buffer_size - 10)))
@@ -163,16 +166,18 @@ class Peer:
         print("Time spent: %.6f seconds" % (float(end_time) - start_time))
 
         total_per_s = float(int(file_size) / (end_time - start_time))
-        print("Total %s bits/s" % (str("{:,}".format(total_per_s).replace('.','#').replace(',','.').replace('#',","))))
+        print("Total %s bits/s" % (str("{:,}".format(8 * total_per_s).replace('.','#').replace(',','.').replace('#',","))))
 
     def receive_header(self):
         while True:
             try:
                 header, addr = self.socket.recvfrom(buffer_size)
-                self.socket.sendto("ACK".encode('utf-8'), addr)
                 header = header.decode('utf-8').lstrip('0')
+                self.socket.sendto("ACK".encode('utf-8'), addr)
+
                 break
-            except socket.timeout:
+            
+            except:
                 continue
 
 
@@ -186,7 +191,6 @@ class Peer:
         lost_packages = 0
 
         for i in range(1, int(np.ceil((pckg_num + 1)/window_size)) + 1):
-            
             while True:
                 data_list = []
                 try:
@@ -194,6 +198,7 @@ class Peer:
                         data, addr = self.socket.recvfrom(buffer_size)
 
                         if len(data) != buffer_size:
+                            print("Erro no recebimento da janela %d por tamanho" % (i))
                             lost_packages += 1
                             continue
 
@@ -205,7 +210,8 @@ class Peer:
                   
                     self.socket.sendto("ACK".encode('utf-8'), addr)
                     
-                except socket.timeout:
+                except:
+                    print("Erro no recebimento da janela %d por timeout" % (i))
                     lost_packages += 1
                     continue
 
@@ -223,9 +229,9 @@ if __name__ == "__main__":
     choose_window_size()
 
     if(__select__ == 1):
-        peer = Peer("192.168.1.6", 3000)
+        peer = Peer("191.52.64.168", 3000)
         peer.socket.bind((peer.ip, peer.port))
         peer.receive_file()
     else:
-        peer = Peer("192.168.1.6", 3000)
-        peer.send_file("virus!.rar", "192.168.1.6", 3000)
+        peer = Peer("191.52.64.168", 3000)
+        peer.send_file("musica.flac", "191.52.64.168", 3000)
