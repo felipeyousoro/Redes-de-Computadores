@@ -79,7 +79,7 @@ class Peer:
         self.send_file_header(file_name, ip, port)
         print("Header sent")    
     
-        self.socket.settimeout(0.05)
+        self.socket.settimeout(0.1)
 
         global buffer_size
         pckg_num = int(np.ceil(os.path.getsize(file_name) / (buffer_size - 10)))
@@ -121,14 +121,12 @@ class Peer:
     def send_file_content(self, file, pckg_num, ip, port):
         global buffer_size
 
-        for i in range(1, int((pckg_num + 1)/window_size)):
-            if i % 5000 == 0:
-                print("Sending package %d of %d" % (i, pckg_num))
+        for i in range(1, int(np.ceil((pckg_num + 1)/window_size)) + 1):
             while True:
                 try:
-                    for i in range(window_size):
+                    for n in range(window_size):
                         data = file.read(buffer_size - 10)
-                        data = (str(i) + ";").encode('utf-8') + data
+                        data = (str(n) + ";").encode('utf-8') + data
                         data = data.zfill(buffer_size)
 
                         self.socket.sendto(data, (ip, port))
@@ -140,7 +138,6 @@ class Peer:
                     
                 except socket.timeout:
                     continue
-
 
 
 #################################################################################
@@ -187,9 +184,9 @@ class Peer:
         file = open("chegou-" + file_name, "wb")
 
         lost_packages = 0
+
         for i in range(1, int(np.ceil((pckg_num + 1)/window_size)) + 1):
             
-            cont = 1
             while True:
                 data_list = []
                 try:
@@ -226,9 +223,9 @@ if __name__ == "__main__":
     choose_window_size()
 
     if(__select__ == 1):
-        peer = Peer("191.52.64.209", 3000)
+        peer = Peer("192.168.1.6", 3000)
         peer.socket.bind((peer.ip, peer.port))
         peer.receive_file()
     else:
-        peer = Peer("191.52.64.63", 3000)
-        peer.send_file("musica.flac", "191.52.64.209", 3000)
+        peer = Peer("192.168.1.6", 3000)
+        peer.send_file("virus!.rar", "192.168.1.6", 3000)
