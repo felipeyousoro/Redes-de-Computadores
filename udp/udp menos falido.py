@@ -8,6 +8,7 @@ import time
 
 buffer_size = 1000
 window_size = 2
+header_size = 20
 
 def choose_peer_type():
     select = 0
@@ -82,7 +83,8 @@ class Peer:
         self.socket.settimeout(0.1)
 
         global buffer_size
-        pckg_num = int(np.ceil(os.path.getsize(file_name) / (buffer_size - 10)))
+        global header_size
+        pckg_num = int(np.ceil(os.path.getsize(file_name) / (buffer_size - header_size)))
 
         start_time = time.time()
 
@@ -121,16 +123,17 @@ class Peer:
 
     def send_file_content(self, file, pckg_num, ip, port):
         global buffer_size
-        
+        global header_size
+
         window_no = int(np.ceil((pckg_num + 1)/window_size)) + 1
 
         for i in range(1, window_no):
             while True:
                 try:
-                    file.seek((i-1)*window_size*(buffer_size - 10))
+                    file.seek((i-1)*window_size*(buffer_size - header_size))
                 
                     for n in range(window_size):
-                        data = file.read(buffer_size - 10)
+                        data = file.read(buffer_size - header_size)
                     
                         current_package = window_size * (i - 1) + n + 1
                         data = (str(current_package) + ";").encode('utf-8') + data
@@ -153,8 +156,11 @@ class Peer:
         header, addr = self.receive_header()
         file_name, file_size = header.split(";")
 
+        self.socket.settimeout(0.1)
+
         global buffer_size
-        pckg_num = int(np.ceil(int(file_size) / (buffer_size - 10)))
+        global header_size
+        pckg_num = int(np.ceil(int(file_size) / (buffer_size - header_size)))
 
         start_time = time.time()
 
@@ -189,6 +195,7 @@ class Peer:
 
     def receive_file_content(self, file_name, pckg_num, addr):
         global buffer_size
+        global header_size
         file = open("chegou-" + file_name, "wb")
 
         lost_packages = 0
@@ -196,10 +203,11 @@ class Peer:
 
         for i in range(1, window_no):
             while True:
+                # print("Recebendo janela %d" % (i))
                 data_list = []
 
                 try:
-                    last_received_package = 0
+                    received_window = 0
                     for n in range(window_size):
                         data, addr = self.socket.recvfrom(buffer_size)
 
@@ -211,26 +219,25 @@ class Peer:
                         header = data[:data.find(b';')]
                         header = header.decode('utf-8').lstrip('0')
                         data = data[data.find(b';') + 1:]
+                        data = data[data.find(b';') + 1:]
 
                         data_list.append(data)
-                        last_received_package = int(header)
+                        received_window = int(header)
                   
-                    received_window = int(last_received_package / window_size)
                     if received_window != i:
-                        print("Received window %d duplicate" % received_window)
-                        self.socket.sendto("ACK".encode('utf-8'), addr)
+                        print("Erro no recebimento da janela %d por ordem, veio %d" % (i, received_window))
+                        self.socket.sendto(("EXP;%d" % (i)).encode('utf-8'), addr)
+                        lost_packages += 1
                         continue
 
 
                     self.socket.sendto("ACK".encode('utf-8'), addr)
                     
-                except:
+                except socket.timeout:
                     print("Erro no recebimento da janela %d por timeout" % (i))
                     lost_packages += 1
                     continue
 
-                if(len(data_list) != window_size):
-                    print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
                 for n in range(len(data_list)):
                     file.write(data_list[n])
             
@@ -246,9 +253,9 @@ if __name__ == "__main__":
     choose_window_size()
 
     if(__select__ == 1):
-        peer = Peer("192.168.1.27", 3000)
+        peer = Peer("191.52.64.141", 3000)
         peer.socket.bind((peer.ip, peer.port))
         peer.receive_file()
     else:
-        peer = Peer("192.168.1.6", 3000)
-        peer.send_file("musica.flac", "192.168.1.6", 3000)
+        peer = Peer("191.52.64.141", 3000)
+        peer.send_file("musica.flac", "191.52.64.141", 3000)
