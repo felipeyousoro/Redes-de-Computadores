@@ -134,12 +134,11 @@ class Peer:
                 data = data.zfill(buffer_size)
                 janela.append(data)
 
-            while True:
+            for n in range(100):
                 try:
                     for n in range(len(janela)):
                         self.socket.sendto(janela[n], (ip, port))
-                    ack_msg = self.socket.recv(buffer_size)
-                    feedback = json.loads(ack_msg.decode('utf-8').lstrip('0'))
+                    feedback = json.loads(self.socket.recv(buffer_size).decode('utf-8').lstrip('0'))
                     if feedback["status"]:
                         break
                 except:
@@ -188,17 +187,29 @@ class Peer:
                         break
                     data_list = []
                     headers = []
+
+                    print("Esperando :", end = "")
+                    print("[%d, %d]" % (cont, cont + 1), end = "")
+                    print(" Recebendo :", end = "")
+                    
+                    pkg_check = True
                     for n in range(len(data_list_bruto)):
                         headers.append(int(data_list_bruto[n][:data_list_bruto[n].find(b';')]))
                         data_list.append(data_list_bruto[n][data_list_bruto[n].find(b';') + 1:])
-                    pkg_check = True
-                    for n in range(len(data_list)):
-                        if headers[n] == cont:
-                            cont = cont + 1
-                            file.write(data_list[n])
-                        else:
-                            pkg_check = False
+                        
+                    if [cont, cont + 1] == headers:                        
+                        cont = cont + 2
+                    elif [cont + 1, cont] == headers:
+                        data_list[0], data_list[1] = data_list[1], data_list[0]
+                        cont = cont + 2
+                    else:
+                        pkg_check = False
+
+                    print(headers)
+
                     if pkg_check:
+                        for n in range(len(data_list_bruto)):
+                            file.write(data_list[n])
                         self.socket.sendto(str("{\"status\":true}").encode('utf-8'), addr)
                     else:
                         self.socket.sendto(str("{\"status\":false}").encode('utf-8'), addr)
@@ -215,9 +226,9 @@ if __name__ == "__main__":
     choose_window_size()
 
     if(__select__ == 1):
-        peer = Peer("191.52.64.209", 3000)
+        peer = Peer("191.52.64.155", 3000)
         peer.socket.bind((peer.ip, peer.port))
         peer.receive_file()
     else:
-        peer = Peer("191.52.64.209", 3000)
-        peer.send_file("sopas.EXE", "191.52.64.209", 3000)
+        peer = Peer("191.52.64.155", 3000)
+        peer.send_file("s0ukmn.flac", "191.52.64.155", 3000)
