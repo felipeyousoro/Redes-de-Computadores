@@ -124,11 +124,12 @@ class Peer:
     def send_file_content(self, file, pckg_num, ip, port):
         global buffer_size
         global header_size
-
         window_no = int(np.ceil((pckg_num + 1)/window_size)) + 1
+        
 
         for i in range(1, window_no):
             while True:
+                # print("Enviando pacotes da janela %d" % i)
                 try:
                     file.seek((i-1)*window_size*(buffer_size - header_size))
                 
@@ -136,7 +137,7 @@ class Peer:
                         data = file.read(buffer_size - header_size)
                     
                         current_package = window_size * (i - 1) + n + 1
-                        data = (str(current_package) + ";").encode('utf-8') + data
+                        data = (str(i) + ";" + str(current_package) + ";").encode('utf-8') + data
                         data = data.zfill(buffer_size)
 
                         self.socket.sendto(data, (ip, port))
@@ -145,8 +146,13 @@ class Peer:
                     ack_msg = ack_msg.decode('utf-8').lstrip('0')
                     if ack_msg == "ACK":
                         break
+                    else:
+                        exp = int(ack_msg.split(';')[1])
+                        i = exp
+                        print("novo i: %d" % i)
+                        continue
                     
-                except:
+                except socket.timeout:
                     print("Erro no envio da janela %d" % (i))
                     continue
 
@@ -219,17 +225,23 @@ class Peer:
                         header = data[:data.find(b';')]
                         header = header.decode('utf-8').lstrip('0')
                         data = data[data.find(b';') + 1:]
-                        data = data[data.find(b';') + 1:]
 
                         data_list.append(data)
                         received_window = int(header)
-                  
-                    if received_window != i:
-                        print("Erro no recebimento da janela %d por ordem, veio %d" % (i, received_window))
-                        self.socket.sendto(("EXP;%d" % (i)).encode('utf-8'), addr)
-                        lost_packages += 1
-                        continue
 
+                  
+                        if received_window != i:
+                            print("Erro no recebimento da janela %d por ordem, veio %d" % (i, received_window))
+                            while True:
+                                try:
+                                    data, addr = self.socket.recvfrom(buffer_size)
+                                except:
+                                    break
+                            self.socket.sendto(("EXP;%d" % (i)).encode('utf-8'), addr)
+                            lost_packages += 1
+                            continue
+
+                    data_list.sort()
 
                     self.socket.sendto("ACK".encode('utf-8'), addr)
                     
@@ -238,8 +250,9 @@ class Peer:
                     lost_packages += 1
                     continue
 
-                for n in range(len(data_list)):
-                    file.write(data_list[n])
+                for data in data_list:
+                    data = data[data.find(b';') + 1:]
+                    file.write(data)
             
                 break
 
