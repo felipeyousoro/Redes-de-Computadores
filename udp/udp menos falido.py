@@ -199,6 +199,15 @@ class Peer:
         print("Header has been received")
         return header, addr
 
+    def check_data_irregularities(self, data_list, exp_window):
+        for data in data_list:
+            cur_window = data[:data.find(b';')]
+            cur_window = int(cur_window.decode('utf-8').lstrip('0'))
+            if cur_window != exp_window:
+                return True
+
+        return False
+
     def receive_file_content(self, file_name, pckg_num, addr):
         global buffer_size
         global header_size
@@ -207,13 +216,12 @@ class Peer:
         lost_packages = 0
         window_no = int(np.ceil((pckg_num + 1)/window_size)) + 1
 
+        print("Esperando %d pacotes e %d janelas" % (pckg_num, window_no))
         for i in range(1, window_no):
             while True:
                 # print("Recebendo janela %d" % (i))
                 data_list = []
-
                 try:
-                    received_window = 0
                     for n in range(window_size):
                         data, addr = self.socket.recvfrom(buffer_size)
 
@@ -222,26 +230,14 @@ class Peer:
                             lost_packages += 1
                             continue
 
-                        header = data[:data.find(b';')]
-                        header = header.decode('utf-8').lstrip('0')
-                        data = data[data.find(b';') + 1:]
-
                         data_list.append(data)
-                        received_window = int(header)
-
                   
-                        if received_window != i:
-                            print("Erro no recebimento da janela %d por ordem, veio %d" % (i, received_window))
-                            while True:
-                                try:
-                                    data, addr = self.socket.recvfrom(buffer_size)
-                                except:
-                                    break
-                            self.socket.sendto(("EXP;%d" % (i)).encode('utf-8'), addr)
-                            lost_packages += 1
-                            continue
+                    if(len(data_list) != window_size or self.check_data_irregularities(data_list, i) == True):
+                        print("Erro no recebimento da janela %d por janela errada" % (i))
+                        lost_packages += 1
+                        continue
 
-                    data_list.sort()
+                    data_list.sort(key=lambda x: int(x[:x.find(b';')].decode('utf-8').lstrip('0')))
 
                     self.socket.sendto("ACK".encode('utf-8'), addr)
                     
@@ -251,6 +247,7 @@ class Peer:
                     continue
 
                 for data in data_list:
+                    data = data[data.find(b';') + 1:]
                     data = data[data.find(b';') + 1:]
                     file.write(data)
             
@@ -266,7 +263,7 @@ if __name__ == "__main__":
     choose_window_size()
 
     if(__select__ == 1):
-        peer = Peer("191.52.64.141", 3000)
+        peer = Peer("192.168.1.27", 3000)
         peer.socket.bind((peer.ip, peer.port))
         peer.receive_file()
     else:
