@@ -200,11 +200,17 @@ class Peer:
         return header, addr
 
     def check_data_irregularities(self, data_list, exp_window):
+        i = 1
         for data in data_list:
             cur_window = data[:data.find(b';')]
+            cur_package = data[data.find(b';')+1:]
+            cur_package = cur_package[:cur_package.find(b';')]
+
             cur_window = int(cur_window.decode('utf-8').lstrip('0'))
-            if cur_window != exp_window:
+            cur_package = int(cur_package.decode('utf-8').lstrip('0'))
+            if cur_window != exp_window or cur_package != (exp_window - 1) * window_size + i:
                 return True
+            i += 1
 
         return False
 
@@ -263,9 +269,9 @@ if __name__ == "__main__":
     choose_window_size()
 
     if(__select__ == 1):
-        peer = Peer("192.168.1.27", 3000)
+        peer = Peer("192.168.1.6", 3000)
         peer.socket.bind((peer.ip, peer.port))
         peer.receive_file()
     else:
-        peer = Peer("191.52.64.141", 3000)
-        peer.send_file("musica.flac", "191.52.64.141", 3000)
+        peer = Peer("192.168.1.6", 3000)
+        peer.send_file("musica.flac", "192.168.1.27", 3000)
