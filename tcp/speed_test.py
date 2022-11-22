@@ -96,13 +96,13 @@ class Client:
 
         message = ''
 
-        message += ("   Pacotes enviados: \t\t\n" + formatar_milhar(str(cont)))
-        message += ("   Bytes enviados: \t\t\n" +formatar_milhar( str(cont * len(data))))
-        message += ("   Velocidade Gigabit: \t\t\n" + formatar_milhar(str(cont * len(data) / (end) / 1000000000)) + " Gbps")
-        message += ("   Velocidade Megabit: \t\t\n" +formatar_milhar( str(cont * len(data) / (end) / 1000000)) + " Mbps")
-        message += ("   Velocidade Kilobit: \t\t\n" +formatar_milhar( str(cont * len(data) / (end) / 1000)) + " Kbps")
-        message += ("   Pacotes por segundo: \t\n" + formatar_milhar(str(cont / (end))))
-        message += ("   Tempo total gasto: \t\t\n" + str(end).split('.')[0] + " segundos")
+        message += ("   Pacotes enviados: \t\t" + formatar_milhar(str(cont))) + '\n'
+        message += ("   Bytes enviados: \t\t" +formatar_milhar( str(cont * len(data))))
+        message += ("   Velocidade Gigabit: \t\t" + formatar_milhar(str(cont * len(data) / (end) / 1000000000)) + " Gbps") + '\n'
+        message += ("   Velocidade Megabit: \t\t" +formatar_milhar( str(cont * len(data) / (end) / 1000000)) + " Mbps") + '\n'
+        message += ("   Velocidade Kilobit: \t\t" +formatar_milhar( str(cont * len(data) / (end) / 1000)) + " Kbps") + '\n'
+        message += ("   Pacotes por segundo: \t" + formatar_milhar(str(cont / (end)))) + '\n'
+        message += ("   Tempo total gasto: \t\t" + str(end).split('.')[0] + " segundos") + '\n'
     
         self.client.send("".encode('utf-8'))
         self.client.send(message.encode('utf-8'))
