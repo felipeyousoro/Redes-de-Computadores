@@ -63,13 +63,27 @@ class Server:
         self.client, address = self.server.accept()
 
     def receive_file(self):
+        
+        start = time.time()
+        cont = 0
         while True:
+            cont += 1
             pck = self.client.recv(500)
             if len(pck) == 0:
                 break
-        self.client.send("ACK")
-        print(self.client.recv(500).decode('utf-8'))
-        file.close()
+        end = time.time() - start 
+
+        message = ''
+
+        message += ("   Pacotes enviados: \t\t" + formatar_milhar(str(cont))) + '\n'
+        message += ("   Bytes enviados: \t\t" +formatar_milhar( str(cont * 500))) + '\n'
+        message += ("   Velocidade Gigabit: \t\t" + formatar_milhar(str(cont * 500 / (end) / 1000000000)) + " Gbps") + '\n'
+        message += ("   Velocidade Megabit: \t\t" +formatar_milhar( str(cont * 500 / (end) / 1000000)) + " Mbps") + '\n'
+        message += ("   Velocidade Kilobit: \t\t" +formatar_milhar( str(cont * 500 / (end) / 1000)) + " Kbps") + '\n'
+        message += ("   Pacotes por segundo: \t" + formatar_milhar(str(cont / (end)))) + '\n'
+        message += ("   Tempo total gasto: \t\t" + str(end).split('.')[0] + " segundos") + '\n'
+    
+        print(message)
 
 class Client:
     def __init__(self, HOST, PORT, SIZE):
@@ -83,10 +97,11 @@ class Client:
     def send_file(self):
     
         start = time.time()
+    
         data = ''
-        
         for i in range(25):
             data += 'teste de rede *2022*'
+        
 
         cont = 0
         while time.time() - start < 20:
@@ -98,10 +113,10 @@ class Client:
         message = ''
 
         message += ("   Pacotes enviados: \t\t" + formatar_milhar(str(cont))) + '\n'
-        message += ("   Bytes enviados: \t\t" +formatar_milhar( str(cont * len(data)))) + '\n'
-        message += ("   Velocidade Gigabit: \t\t" + formatar_milhar(str(cont * len(data) / (end) / 1000000000)) + " Gbps") + '\n'
-        message += ("   Velocidade Megabit: \t\t" +formatar_milhar( str(cont * len(data) / (end) / 1000000)) + " Mbps") + '\n'
-        message += ("   Velocidade Kilobit: \t\t" +formatar_milhar( str(cont * len(data) / (end) / 1000)) + " Kbps") + '\n'
+        message += ("   Bytes enviados: \t\t" +formatar_milhar( str(cont * 500))) + '\n'
+        message += ("   Velocidade Gigabit: \t\t" + formatar_milhar(str(cont * 500 / (end) / 1000000000)) + " Gbps") + '\n'
+        message += ("   Velocidade Megabit: \t\t" +formatar_milhar( str(cont * 500 / (end) / 1000000)) + " Mbps") + '\n'
+        message += ("   Velocidade Kilobit: \t\t" +formatar_milhar( str(cont * 500 / (end) / 1000)) + " Kbps") + '\n'
         message += ("   Pacotes por segundo: \t" + formatar_milhar(str(cont / (end)))) + '\n'
         message += ("   Tempo total gasto: \t\t" + str(end).split('.')[0] + " segundos") + '\n'
     
