@@ -66,25 +66,28 @@ class Server:
         
         start = time.time()
         cont = 0
-        while time.time() - start < 20:
+        while True:
             pck = self.client.recv(500)
-            cont += 1
-            if len(pck) == 0:
+
+            while len(pck) < 500:
+                pck_ += self.client.recv(500 - len(pck))
+                if pck_ == b'':
+                    break
+                pck += pck_
+
+            if pck == b'':
                 break
+            cont += 1
+        self.client.close()
         end = time.time() - start 
 
-        message = ''
-
-        message += ("   Pacotes recebidos: \t\t" + formatar_milhar(str(cont))) + '\n'
-        message += ("   Bytes recebidos: \t\t" +formatar_milhar( str(cont * 500))) + '\n'
-        message += ("   Velocidade Gigabit: \t\t" + formatar_milhar(str(cont * 500 / (end) / 1000000000)) + " Gbps") + '\n'
-        message += ("   Velocidade Megabit: \t\t" +formatar_milhar( str(cont * 500 / (end) / 1000000)) + " Mbps") + '\n'
-        message += ("   Velocidade Kilobit: \t\t" +formatar_milhar( str(cont * 500 / (end) / 1000)) + " Kbps") + '\n'
-        message += ("   Pacotes por segundo: \t" + formatar_milhar(str(cont / (end)))) + '\n'
-        message += ("   Tempo total gasto: \t\t" + str(end).split('.')[0] + " segundos") + '\n'
+        print("   Packages received: \t\t" + formatar_milhar(str(cont)))
+        print("   Total bytes received: \t\t" +formatar_milhar( str(cont * 4000)))
+        print("   Total gigabits per second: \t\t" + formatar_milhar(str(cont * 4000 / (end) / 1000000000)) + " Gbps")
+        print("   Total megabits per second: \t\t" +formatar_milhar( str(cont * 4000 / (end) / 1000000)) + " Mbps")
+        print("   Total kilobits per second: \t\t" +formatar_milhar( str(cont * 4000 / (end) / 1000)) + " Kbps")
+        print("   Packages by second: \t" + formatar_milhar(str(cont / (end))))
     
-        print(message)
-
 class Client:
     def __init__(self, HOST, PORT, SIZE):
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -95,32 +98,25 @@ class Client:
         self.pckg_size = SIZE
 
     def send_file(self):
-    
+
         start = time.time()
-    
+
         data = 'teste de rede *2022*'.zfill(500)
-        
+
         cont = 0
         while time.time() - start < 20:
             cont += 1
             self.client.send(data.encode("utf-8"))
-
         end = time.time() - start 
 
-        message = ''
-
-        message += ("   Pacotes enviados: \t\t" + formatar_milhar(str(cont))) + '\n'
-        message += ("   Bytes enviados: \t\t" +formatar_milhar( str(cont * 500))) + '\n'
-        message += ("   Velocidade Gigabit: \t\t" + formatar_milhar(str(cont * 500 / (end) / 1000000000)) + " Gbps") + '\n'
-        message += ("   Velocidade Megabit: \t\t" +formatar_milhar( str(cont * 500 / (end) / 1000000)) + " Mbps") + '\n'
-        message += ("   Velocidade Kilobit: \t\t" +formatar_milhar( str(cont * 500 / (end) / 1000)) + " Kbps") + '\n'
-        message += ("   Pacotes por segundo: \t" + formatar_milhar(str(cont / (end)))) + '\n'
-        message += ("   Tempo total gasto: \t\t" + str(end).split('.')[0] + " segundos") + '\n'
+        print("   Packages sent: \t\t" + formatar_milhar(str(cont)))
+        print("   Total bytes sent: \t\t" +formatar_milhar( str(cont * 4000)))
+        print("   Total gigabits per second: \t\t" + formatar_milhar(str(cont * 4000 / (end) / 1000000000)) + " Gbps")
+        print("   Total megabits per second: \t\t" +formatar_milhar( str(cont * 4000 / (end) / 1000000)) + " Mbps")
+        print("   Total kilobits per second: \t\t" +formatar_milhar( str(cont * 4000 / (end) / 1000)) + " Kbps")
+        print("   Packages by second: \t" + formatar_milhar(str(cont / (end))))
     
         self.client.send("".encode('utf-8'))
-
-        print(message)
-
 
 if __name__ == "__main__":
 
