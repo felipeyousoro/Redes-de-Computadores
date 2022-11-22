@@ -19,7 +19,7 @@ def formatar_milhar(numero):
     if len(numero) == 1:
         return rec(numero[0])
     else:
-        return rec(numero[0]) + "," + numero[1][:2]
+        return rec(numero[0]) + "," + numero[1][:3]
 
 
 
@@ -67,6 +67,7 @@ class Server:
             pck = self.client.recv(500)
             if len(pck) == 0:
                 break
+        self.client.send("ACK")
         print(self.client.recv(500).decode('utf-8'))
         file.close()
 
@@ -105,6 +106,7 @@ class Client:
         message += ("   Tempo total gasto: \t\t" + str(end).split('.')[0] + " segundos") + '\n'
     
         self.client.send("".encode('utf-8'))
+        self.client.recv(500)
         self.client.send(message.encode('utf-8'))
 
         print(message)
