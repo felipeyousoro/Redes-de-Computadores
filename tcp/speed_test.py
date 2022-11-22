@@ -64,13 +64,11 @@ class Server:
         self.client, address = self.server.accept()
 
     def receive_file(self):
-        start_t = time.time()
         while True:
             pck = self.client.recv(500)
             if len(pck) == 0:
                 break
-        fim_t = time.time() - start_t
-        print('   Tempo total gasto: ' + str(fim_t) + ' segundos')
+        print(self.client.recv(500))
         file.close()
 
 class Client:
@@ -97,15 +95,20 @@ class Client:
 
         end = time.time() - start 
 
-        print("   Pacotes enviados: \t\t" + formatar_milhar(str(cont)))
-        print("   Bytes enviados: \t\t" +formatar_milhar( str(cont * len(data))))
-        print("   Velocidade Gigabit: \t\t" + formatar_milhar(str(cont * len(data) / (end) / 1000000000)) + " Gbps")
-        print("   Velocidade Megabit: \t\t" +formatar_milhar( str(cont * len(data) / (end) / 1000000)) + " Mbps")
-        print("   Velocidade Kilobit: \t\t" +formatar_milhar( str(cont * len(data) / (end) / 1000)) + " Kbps")
-        print("   Pacotes por segundo: \t" + formatar_milhar(str(cont / (end))))
-        print("   Tempo total gasto: \t\t" + str(end).split('.')[0] + " segundos")
+        message = ''
+
+        message += ("   Pacotes enviados: \t\t" + formatar_milhar(str(cont)))
+        message += ("   Bytes enviados: \t\t" +formatar_milhar( str(cont * len(data))))
+        message += ("   Velocidade Gigabit: \t\t" + formatar_milhar(str(cont * len(data) / (end) / 1000000000)) + " Gbps")
+        message += ("   Velocidade Megabit: \t\t" +formatar_milhar( str(cont * len(data) / (end) / 1000000)) + " Mbps")
+        message += ("   Velocidade Kilobit: \t\t" +formatar_milhar( str(cont * len(data) / (end) / 1000)) + " Kbps")
+        message += ("   Pacotes por segundo: \t" + formatar_milhar(str(cont / (end))))
+        message += ("   Tempo total gasto: \t\t" + str(end).split('.')[0] + " segundos")
     
         self.client.send("".encode('utf-8'))
+        self.client.send(message.encode('utf-8'))
+
+        print(message)
 
 
 if __name__ == "__main__":
@@ -117,11 +120,11 @@ if __name__ == "__main__":
     __select__ = interface_type()
 
     if __select__:
-        __server = Server(2020)
+        __server = Server(3000)
         __server.receive_file()
 
     if not __select__:
-        PORT = 2020
+        PORT = 3000
         # HOST = str(input("   Insira o IP: "))
         __client = Client('10.0.0.100', PORT, 0)
         __client.send_file()
