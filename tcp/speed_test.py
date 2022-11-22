@@ -66,17 +66,17 @@ class Server:
         
         start = time.time()
         cont = 0
-        while True:
-            cont += 1
+        while time.time() - start < 20:
             pck = self.client.recv(500)
+            cont += 1
             if len(pck) == 0:
                 break
         end = time.time() - start 
 
         message = ''
 
-        message += ("   Pacotes enviados: \t\t" + formatar_milhar(str(cont))) + '\n'
-        message += ("   Bytes enviados: \t\t" +formatar_milhar( str(cont * 500))) + '\n'
+        message += ("   Pacotes recebidos: \t\t" + formatar_milhar(str(cont))) + '\n'
+        message += ("   Bytes recebidos: \t\t" +formatar_milhar( str(cont * 500))) + '\n'
         message += ("   Velocidade Gigabit: \t\t" + formatar_milhar(str(cont * 500 / (end) / 1000000000)) + " Gbps") + '\n'
         message += ("   Velocidade Megabit: \t\t" +formatar_milhar( str(cont * 500 / (end) / 1000000)) + " Mbps") + '\n'
         message += ("   Velocidade Kilobit: \t\t" +formatar_milhar( str(cont * 500 / (end) / 1000)) + " Kbps") + '\n'
@@ -98,11 +98,8 @@ class Client:
     
         start = time.time()
     
-        data = ''
-        for i in range(25):
-            data += 'teste de rede *2022*'
+        data = 'teste de rede *2022*'.zfill(500)
         
-
         cont = 0
         while time.time() - start < 20:
             cont += 1
@@ -121,8 +118,6 @@ class Client:
         message += ("   Tempo total gasto: \t\t" + str(end).split('.')[0] + " segundos") + '\n'
     
         self.client.send("".encode('utf-8'))
-        self.client.recv(500)
-        self.client.send(message.encode('utf-8'))
 
         print(message)
 
