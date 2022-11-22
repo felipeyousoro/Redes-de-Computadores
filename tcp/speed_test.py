@@ -97,7 +97,7 @@ class Client:
         message = ''
 
         message += ("   Pacotes enviados: \t\t" + formatar_milhar(str(cont))) + '\n'
-        message += ("   Bytes enviados: \t\t" +formatar_milhar( str(cont * len(data))))
+        message += ("   Bytes enviados: \t\t" +formatar_milhar( str(cont * len(data)))) + '\n'
         message += ("   Velocidade Gigabit: \t\t" + formatar_milhar(str(cont * len(data) / (end) / 1000000000)) + " Gbps") + '\n'
         message += ("   Velocidade Megabit: \t\t" +formatar_milhar( str(cont * len(data) / (end) / 1000000)) + " Mbps") + '\n'
         message += ("   Velocidade Kilobit: \t\t" +formatar_milhar( str(cont * len(data) / (end) / 1000)) + " Kbps") + '\n'
