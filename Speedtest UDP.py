@@ -10,6 +10,19 @@ buffer_size = 500
 window_size = 2
 package_content = "teste de rede *2022*".zfill(buffer_size)
 
+def rec(numero):
+    if len(numero) > 3:
+        return formatar_milhar(numero[:-3]) + "." + numero[-3:]
+    else:
+        return numero
+
+def formatar_milhar(numero):
+    numero = numero.split('.')
+
+    if len(numero) == 1:
+        return rec(numero[0])
+    else:
+        return rec(numero[0]) + "," + numero[1][:3]
 
 def choose_peer_type():
     select = 0
@@ -45,13 +58,13 @@ class Peer:
             self.socket.sendto(package_content.encode(), (ip, port))
             packages_sent += 1
 
-        print("Packages sent: " + str(packages_sent))
-        print("Packages by second: " + str(packages_sent / _time))
-        print("Total bytes sent: " + str(packages_sent * buffer_size * 8))
-        print("Total bits per second: " + str(packages_sent * buffer_size * 8 / _time))
-        print("Total kilobits per second: " + str(packages_sent * buffer_size * 8 / (_time * 1000)))
-        print("Total megabits per second: " + str(packages_sent * buffer_size * 8 / (_time * 1000000)))
-        print("Total gigabits per second: " + str(packages_sent * buffer_size * 8 / (_time * 1000000000)))
+        print("Packages sent: " + formatar_milhar(str(packages_sent)))
+        print("Packages by second: " + formatar_milhar(str(packages_sent / _time)))
+        print("Total bytes sent: " + formatar_milhar(str(packages_sent * buffer_size * 8)))
+        print("Total bits per second: " + formatar_milhar(str(packages_sent * buffer_size * 8 / _time)))
+        print("Total kilobits per second: " + formatar_milhar(str(packages_sent * buffer_size * 8 / (_time * 1000))))
+        print("Total megabits per second: " + formatar_milhar(str(packages_sent * buffer_size * 8 / (_time * 1000000))))
+        print("Total gigabits per second: " + formatar_milhar(str(packages_sent * buffer_size * 8 / (_time * 1000000000))))
         
 #################################################################################
     def receive_packages(self, _time):
@@ -68,13 +81,13 @@ class Peer:
 
         total_time = time.time() - start_time - 5
 
-        print("Packages received: " + str(packages_received))
-        print("Packages by second: " + str(packages_received / total_time))
-        print("Total bytes received: " + str(packages_received * buffer_size * 8))
-        print("Total bits per second: " + str(packages_received * buffer_size * 8 / total_time))
-        print("Total kilobits per second: " + str(packages_received * buffer_size * 8 / (total_time * 1000)))
-        print("Total megabits per second: " + str(packages_received * buffer_size * 8 / (total_time * 1000000)))
-        print("Total gigabits per second: " + str(packages_received * buffer_size * 8 / (total_time * 1000000000)))
+        print("Packages received: " + formatar_milhar(str(packages_received)))
+        print("Packages by second: " + formatar_milhar(str(packages_received / total_time)))
+        print("Total bytes received: " + formatar_milhar(str(packages_received * buffer_size * 8)))
+        print("Total bits per second: " + formatar_milhar(str(packages_received * buffer_size * 8 / total_time)))
+        print("Total kilobits per second: " + formatar_milhar(str(packages_received * buffer_size * 8 / (total_time * 1000))))
+        print("Total megabits per second: " + formatar_milhar(str(packages_received * buffer_size * 8 / (total_time * 1000000))))
+        print("Total gigabits per second: " + formatar_milhar(str(packages_received * buffer_size * 8 / (total_time * 1000000000))))
 
     
 
@@ -85,9 +98,9 @@ if __name__ == "__main__":
     # choose_window_size()
 
     if(__select__ == 1):
-        peer = Peer("192.168.1.6", 3000)
+        peer = Peer("191.52.64.138", 3000)
         peer.socket.bind((peer.ip, peer.port))
         peer.receive_packages(20)
     else:
-        peer = Peer("192.168.1.6", 3000)
-        peer.send_packages("192.168.1.6", 3000, 20)
+        peer = Peer("191.52.64.138", 3000)
+        peer.send_packages("191.52.64.98", 3000, 20)

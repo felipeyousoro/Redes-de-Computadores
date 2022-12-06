@@ -83,13 +83,13 @@ class Server:
 
         total_time = time.time() - start_time
 
-        print("Packages received: " + str(packages_received))
-        print("Packages by second: " + str(packages_received / total_time))
-        print("Total bytes received: " + str(packages_received * 500 * 8))
-        print("Total bits per second: " + str(packages_received * 500 * 8 / total_time))
-        print("Total kilobits per second: " + str(packages_received * 500 * 8 / (total_time * 1000)))
-        print("Total megabits per second: " + str(packages_received * 500 * 8 / (total_time * 1000000)))
-        print("Total gigabits per second: " + str(packages_received * 500 * 8 / (total_time * 1000000000)))    
+        print("Packages received: " + formatar_milhar(str(packages_received)))
+        print("Packages by second: " + formatar_milhar(str(packages_received / total_time)))
+        print("Total bytes received: " + formatar_milhar(str(packages_received * 500)))
+        print("Total bits per second: " + formatar_milhar(str(packages_received * 500 * 8 / total_time)))
+        print("Total kilobits per second: " + formatar_milhar(str(packages_received * 500 * 8 / (total_time * 1000))))
+        print("Total megabits per second: " + formatar_milhar(str(packages_received * 500 * 8 / (total_time * 1000000))))
+        print("Total gigabits per second: " + formatar_milhar(str(packages_received * 500 * 8 / (total_time * 1000000000))))
 
 class Client:
     def __init__(self, HOST, PORT, SIZE):
@@ -112,12 +112,12 @@ class Client:
             self.client.send(data.encode("utf-8"))
         end = time.time() - start 
 
-        print("   Packages sent: \t\t" + formatar_milhar(str(cont)))
-        print("   Total bytes sent: \t\t" +formatar_milhar( str(cont * 4000)))
-        print("   Total gigabits per second: \t" + formatar_milhar(str(cont * 4000 / (end) / 1000000000)) + " Gbps")
-        print("   Total megabits per second: \t" +formatar_milhar( str(cont * 4000 / (end) / 1000000)) + " Mbps")
-        print("   Total kilobits per second: \t" +formatar_milhar( str(cont * 4000 / (end) / 1000)) + " Kbps")
-        print("   Packages by second: \t\t" + formatar_milhar(str(cont / (end))))
+        print("Packages sent: \t\t" + formatar_milhar(str(cont)))
+        print("Total bytes sent: \t\t" + formatar_milhar( str(cont * 500)))
+        print("Total gigabits per second: \t" + formatar_milhar(str(cont * 4000 / (end) / 1000000000)) + " Gbps")
+        print("Total megabits per second: \t" + formatar_milhar( str(cont * 4000 / (end) / 1000000)) + " Mbps")
+        print("Total kilobits per second: \t" + formatar_milhar( str(cont * 4000 / (end) / 1000)) + " Kbps")
+        print("Packages by second: \t\t" + formatar_milhar(str(cont / (end))))
     
         self.client.send("".encode('utf-8'))
 
@@ -136,7 +136,7 @@ if __name__ == "__main__":
     if not __select__:
         PORT = 3000
         # HOST = str(input("   Insira o IP: "))
-        __client = Client('192.168.1.6', PORT, 0)
+        __client = Client('191.52.64.98', PORT, 0)
         __client.send_file()
 
     print("\n\n   Tranferencia concluida")
