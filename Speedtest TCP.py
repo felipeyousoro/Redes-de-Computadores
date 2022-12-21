@@ -136,7 +136,7 @@ if __name__ == "__main__":
     if not __select__:
         PORT = 3000
         # HOST = str(input("   Insira o IP: "))
-        __client = Client('191.52.64.98', PORT, 0)
+        __client = Client('191.52.64.138', PORT, 0)
         __client.send_file()
 
     print("\n\n   Tranferencia concluida")

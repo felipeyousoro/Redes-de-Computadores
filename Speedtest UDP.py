@@ -98,9 +98,9 @@ if __name__ == "__main__":
     # choose_window_size()
 
     if(__select__ == 1):
-        peer = Peer("191.52.64.138", 3000)
+        peer = Peer("191.52.64.98", 3000)
         peer.socket.bind((peer.ip, peer.port))
         peer.receive_packages(20)
     else:
-        peer = Peer("191.52.64.138", 3000)
-        peer.send_packages("191.52.64.98", 3000, 20)
+        peer = Peer("191.52.64.98", 3000)
+        peer.send_packages("191.52.64.138", 3000, 20)
