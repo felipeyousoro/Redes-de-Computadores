@@ -64,30 +64,33 @@ class Server:
 
     def receive_file(self):
         
-        start = time.time()
-        cont = 0
+        start_time = time.time()
+        packages_received = 0
+
         while True:
-            pck = self.client.recv(500)
+            ready = select([self.client], [], [], 5)
 
-            while len(pck) < 500:
-                pck_ += self.client.recv(500 - len(pck))
-                if pck_ == b'':
+            if ready[0]:
+                data = self.client.recv(500)
+
+                if len(data) == 0:
                     break
-                pck += pck_
+                if len(data) == 500:
+                    packages_received += 1
+                if len(data) < 500:
+                    data += self.client.recv(500 - len(data))
+                    packages_received += 1
 
-            if pck == b'':
-                break
-            cont += 1
-        self.client.close()
-        end = time.time() - start 
+        total_time = time.time() - start_time
 
-        print("   Packages received: \t\t" + formatar_milhar(str(cont)))
-        print("   Total bytes received: \t\t" +formatar_milhar( str(cont * 4000)))
-        print("   Total gigabits per second: \t\t" + formatar_milhar(str(cont * 4000 / (end) / 1000000000)) + " Gbps")
-        print("   Total megabits per second: \t\t" +formatar_milhar( str(cont * 4000 / (end) / 1000000)) + " Mbps")
-        print("   Total kilobits per second: \t\t" +formatar_milhar( str(cont * 4000 / (end) / 1000)) + " Kbps")
-        print("   Packages by second: \t" + formatar_milhar(str(cont / (end))))
-    
+        print("Packages received: " + formatar_milhar(str(packages_received)))
+        print("Packages by second: " + formatar_milhar(str(packages_received / total_time)))
+        print("Total bytes received: " + formatar_milhar(str(packages_received * 500)))
+        print("Total bits per second: " + formatar_milhar(str(packages_received * 500 * 8 / total_time)))
+        print("Total kilobits per second: " + formatar_milhar(str(packages_received * 500 * 8 / (total_time * 1000))))
+        print("Total megabits per second: " + formatar_milhar(str(packages_received * 500 * 8 / (total_time * 1000000))))
+        print("Total gigabits per second: " + formatar_milhar(str(packages_received * 500 * 8 / (total_time * 1000000000))))
+
 class Client:
     def __init__(self, HOST, PORT, SIZE):
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -109,12 +112,12 @@ class Client:
             self.client.send(data.encode("utf-8"))
         end = time.time() - start 
 
-        print("   Packages sent: \t\t" + formatar_milhar(str(cont)))
-        print("   Total bytes sent: \t\t" +formatar_milhar( str(cont * 4000)))
-        print("   Total gigabits per second: \t\t" + formatar_milhar(str(cont * 4000 / (end) / 1000000000)) + " Gbps")
-        print("   Total megabits per second: \t\t" +formatar_milhar( str(cont * 4000 / (end) / 1000000)) + " Mbps")
-        print("   Total kilobits per second: \t\t" +formatar_milhar( str(cont * 4000 / (end) / 1000)) + " Kbps")
-        print("   Packages by second: \t" + formatar_milhar(str(cont / (end))))
+        print("Packages sent: \t\t" + formatar_milhar(str(cont)))
+        print("Total bytes sent: \t\t" + formatar_milhar( str(cont * 500)))
+        print("Total gigabits per second: \t" + formatar_milhar(str(cont * 4000 / (end) / 1000000000)) + " Gbps")
+        print("Total megabits per second: \t" + formatar_milhar( str(cont * 4000 / (end) / 1000000)) + " Mbps")
+        print("Total kilobits per second: \t" + formatar_milhar( str(cont * 4000 / (end) / 1000)) + " Kbps")
+        print("Packages by second: \t\t" + formatar_milhar(str(cont / (end))))
     
         self.client.send("".encode('utf-8'))
 
@@ -133,7 +136,7 @@ if __name__ == "__main__":
     if not __select__:
         PORT = 3000
         # HOST = str(input("   Insira o IP: "))
-        __client = Client('10.0.0.100', PORT, 0)
+        __client = Client('191.52.64.138', PORT, 0)
         __client.send_file()
 
     print("\n\n   Tranferencia concluida")
